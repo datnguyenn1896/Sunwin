@@ -5,6 +5,10 @@ import certifi
 import ssl
 import logging
 from telegram import Bot
+import tracemalloc
+
+
+tracemalloc.start()
 
 def get_next_char(sequence, substring):
     # Kiểm tra độ dài chuỗi con
@@ -73,7 +77,6 @@ def send_test_message(message):
 
 
 previous_session = None
-time = 35
 
 status_bet = False
 # dự đoán
@@ -98,13 +101,13 @@ data_status = {"status":"wait_end_session",
                "total" : 0,
                "total_win" : 0,
                "total_lose" : 0,
-               "lose_strick" : 0}
+               "lose_strick" : 0,
+               "time_live":35,
+               "time_normal":50
+               }
 
 with open('login.json', 'r') as file:
     login = file.read()
-
-with open('settings.json', 'r', encoding='utf-8') as file:
-    settings = file.read()
 
 with open('fund.txt', 'r') as file:
     fund = file.read()
@@ -113,8 +116,7 @@ with open('fund.txt', 'r') as file:
 logging.basicConfig(level=logging.CRITICAL)
 
 async def connect_and_communicate(uri, name):
-    global time, data, previous_session
-
+    global data, previous_session
     while True:
         try:
             ssl_context = ssl.create_default_context(cafile=certifi.where())
@@ -123,12 +125,17 @@ async def connect_and_communicate(uri, name):
                 await websocket.send(json.dumps(payload[name]))
                 await websocket.send(json.dumps(payload[name]))
 
+                if name == "websocketlive":
+                    time = data_status["time_live"]
+                else:
+                    time = data_status["time_normal"]
+
                 # print(f"Sent message: {payload}")
                 while True:
                     message = await websocket.recv()
                     # print(f"Received message: {message}")
-                    try:
-                        
+                    
+                    try: 
                         data = json.loads(message)
                         if data[0]==6:
                             print(data)
@@ -140,24 +147,36 @@ async def connect_and_communicate(uri, name):
                             if data[0] == 5 and data[1]["cmd"] == 310:
                                 data_status["gold"] = int(data[1]["As"]["gold"])
 
-                        # print("Parsed JSON:", data[0], data[1])
-                        if data[0] == 1 and data[1] == True:
-                            payload_connect_tx = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1950,"sC":True}])
+                        # Connect server live
+                        if (name == "websocketlive" or name == "websocket") and data[0] == 1 and data[1] == True:
+                            if name == "websocketlive":
+                                payload_connect_tx = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1950,"sC":True}])
+                            elif name == "websocket":
+                                payload_connect_tx = json.dumps([6,"MiniGame","taixiuPlugin",{"cmd":1005}])
                             # print("Connect tài xỉu")
                             await websocket.send(payload_connect_tx)
                             # Khởi động luồng gửi ping định kỳ
                             asyncio.create_task(send_ping(websocket))
-                                                # Thêm kết quả vào dict khi nhận đc wss get lịch sử
-                        
-                        if data[0] == 5 and data[1]["cmd"] == 1957:
-                            # print(data[1]["gi"][0])
-                            betB = f'{data[1]["bs"][3]["v"]:,}'
-                            userB = f'{data[1]["bs"][3]["uC"]:,}'
+                            # Thêm kết quả vào dict khi nhận đc wss get lịch sử
 
-                            betS = f'{data[1]["bs"][6]["v"]:,}'
-                            userS = f'{data[1]["bs"][6]["uC"]:,}'
-                            seasion = data[1]["sid"]
-                            
+                        if data[0] == 5 and (data[1]["cmd"] == 1957 or data[1]["cmd"] == 1008):
+                            if data[1]["cmd"] == 1957:
+                                # print(data[1]["gi"][0])
+                                betB = f'{data[1]["bs"][3]["v"]:,}'
+                                userB = f'{data[1]["bs"][3]["uC"]:,}'
+
+                                betS = f'{data[1]["bs"][6]["v"]:,}'
+                                userS = f'{data[1]["bs"][6]["uC"]:,}'
+                                seasion = data[1]["sid"]
+                            elif data[1]["cmd"] == 1008:
+                                    
+                                betB = f'{data[1]["gi"][0]["B"]["tB"]:,}'
+                                userB = f'{data[1]["gi"][0]["B"]["tU"]:,}'
+
+                                betS = f'{data[1]["gi"][0]["S"]["tB"]:,}'
+                                userS = f'{data[1]["gi"][0]["S"]["tU"]:,}'
+                                seasion = data[1]["sid"]
+                                
                             # Cập nhập seasion hiện tại
                             data_status["current_session"] = seasion
                             data_status["next_session"] = seasion + 1
@@ -176,18 +195,27 @@ async def connect_and_communicate(uri, name):
                                     if data_status["status"] != "wait_result_bet":
                                         data_status["status"] = "next_session"
                                     previous_session = seasion
-                                    time = 35
+                                    if name == "websocketlive":
+                                        time = data_status["time_live"]
+                                    elif name == "websocket":
+                                        time = data_status["time_normal"]
 
                             time -= 1
                             gold = data_status["gold"]
                             # print(f"Phiên: #{seasion} - Thời gian: {time} - TÀI: Số người: {userB} / Số tiền: {betB} - XỈU: {userS} / Số tiền: {betS} - Tài khoản: {f'{gold:,}'}")
                             # print(data_status["status"])
 
-                        # Nhận được message tin nhắn trả kết quả
-                        if data[0] == 5 and data[1]["cmd"] == 1965:
+                        # Nhận được message tin nhắn khi get kết quả
+                        if data[0] == 5 and (data[1]["cmd"] == 1965 or data[1]["cmd"] == 1007):
                             result = 0
-                            for a in data[1]["rs"]:
-                                result += int(a)
+                            # live
+                            if data[1]["cmd"] == 1965:
+                                for a in data[1]["rs"]:
+                                    result += int(a)
+                            # normal
+                            elif data[1]["cmd"] == 1007:
+                                result = data[1]["d1"] + data[1]["d2"] + data[1]["d3"]
+                            
                             if result >= 11:
                                 resultB = "T"
                             else:
@@ -195,20 +223,32 @@ async def connect_and_communicate(uri, name):
                             sid = data[1]["sid"]
                             add_to_dict(sid, resultB)
                             
-
                             if sid == data_status["prev_session"]:
                                 # data_status["status"] = "next_session"
                                 data_status["next_session"] = sid + 1
                             data_status["prev_session_rs"] = True
 
+                            
+
                         # Nhận được message tin nhắn trả kết quả phiên trước
-                        if data[0] == 5 and data[1]["cmd"] == 1956:
-                            result = str(data[1]["betTypeResult"]).split(",")[0]
-                            if result == "BIG":
-                                resultB = "T"
-                            else:
-                                resultB = "X"
-                            sid = data[1]["sessionId"]
+                        if data[0] == 5 and (data[1]["cmd"] == 1956 or data[1]["cmd"] == 1004):
+                            # live
+                            if data[1]["cmd"] == 1956:
+                                result = str(data[1]["betTypeResult"]).split(",")[0]
+                                if result == "BIG":
+                                    resultB = "T"
+                                else:
+                                    resultB = "X"
+                                sid = data[1]["sessionId"]
+                            # normal
+                            elif data[1]["cmd"] == 1004:
+                                result = data[1]["d1"] + data[1]["d2"] + data[1]["d3"]
+                                if result >= 11:
+                                    resultB = "T"
+                                else:
+                                    resultB = "X"
+                                sid = seasion
+
                             add_to_dict(sid, resultB)
                             if sid == data_status["prev_session"]:
                                 # data_status["status"] = "next_session"
@@ -228,11 +268,12 @@ async def connect_and_communicate(uri, name):
                                 status = "\U0001F525 WIN"
                                 data_status["total_win"] += 1
                                 data_status["lose_strick"] = 0
-
+                                gold += current_bet + current_bet * 99/100
                             else:
                                 status = "\U0001F32A LOSE"
                                 data_status["total_lose"] += 1
                                 data_status["lose_strick"] += 1
+                                gold -= current_bet
 
                             total = data_status["total"]
                             total_win = data_status["total_win"]
@@ -249,7 +290,6 @@ async def connect_and_communicate(uri, name):
                             data_status["current_betTypeResult"] = None
                             data_status["current_bet"] = None
                         elif data_status["session_bet"] != None and data_status["current_session"] > data_status["session_bet"]:
-                            print("chạy vài đây")
                             await asyncio.sleep(1)
                             data_get_history = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1965,"sid":data_status["session_bet"]}])
                             await websocket.send(data_get_history)
@@ -279,16 +319,33 @@ async def connect_and_communicate(uri, name):
                                         # print(f"Dự đoán phiên tiếp theo là: {result_next_seesion} - BET: {monneyB}")
                                         break
                         
-                        json_data = json.loads(settings)
-                        if time == json_data["time_in_bet"] and data_status["status"] == "wait_bet":
+                        if name == "websocketlive":
+                            time_in_bet = data_status["time_live"] - 2
+                        else:
+                            time_in_bet = data_status["time_normal"] - 2
+
+                        if time == time_in_bet and data_status["status"] == "wait_bet":
                             seasion = data_status["current_session"]
                             next_betTypeResult = data_status["next_betTypeResult"]
+
                             if next_betTypeResult == "X":
-                                eid = "SMALL"
+                                if name == "websocketlive":
+                                    eid = "SMALL"
+                                elif name == "websocket":
+                                    eid = 2
                             else:
-                                eid = "BIG"
-                            # print([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1952,"b":data_status["next_bet"],"eid":eid,"sid":seasion}])
-                            data_bet = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1952,"b":data_status["next_bet"],"eid":eid,"sid":seasion}])
+                                if name == "websocketlive":
+                                    eid = "BIG"
+                                elif name == "websocket":
+                                    eid = 1
+
+                            
+                            if name == "websocket":
+                                data_bet = json.dumps([6,"MiniGame","taixiuPlugin",{"cmd":1000,"b":data_status["next_bet"],"aid":1,"sid":seasion,"eid":eid}])
+                            elif name == "websocketlive":
+                                data_bet = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1952,"b":data_status["next_bet"],"eid":eid,"sid":seasion}])
+
+                            
                             await websocket.send(data_bet)
                             next_bet = data_status["next_bet"]
                             print(f"Phiên: #{seasion} - Thời gian: {time} - BET: {next_betTypeResult}: {f'{next_bet:,}'}")
@@ -316,17 +373,25 @@ async def connect_and_communicate(uri, name):
             continue
 
 
-async def main():
+async def main(option):
     # Địa chỉ WebSocket server
     uri1 = "wss://ws-taixiu-ls.azhkthg1.com/websocket"
     uri2 = "wss://websocket.azhkthg1.net/websocket4"
-
-    # Tạo các tác vụ kết nối đến hai WebSocket server
-    task1 = asyncio.create_task(connect_and_communicate(uri1, "websocketlive"))
-    task2 = asyncio.create_task(connect_and_communicate(uri2, "websocket4"))
-
+    uri3 = "wss://websocket.azhkthg1.net/websocket"
+    if option == "live":
+        # Tạo các tác vụ kết nối đến hai WebSocket server
+        task1 = asyncio.create_task(connect_and_communicate(uri1, "websocketlive"))
+        task2 = asyncio.create_task(connect_and_communicate(uri2, "websocket4"))
+    elif option == "normal":
+        task1 = asyncio.create_task(connect_and_communicate(uri3, "websocket"))
+        task2 = asyncio.create_task(connect_and_communicate(uri2, "websocket4"))
+    
     # Chờ cả hai tác vụ hoàn thành
     await asyncio.gather(task1, task2)
 
+# Chế độ
+# Bình thường: normal
+# Livestream: live
+option = "normal"
 # Chạy chương trình
-asyncio.run(main())
+asyncio.run(main(option))
