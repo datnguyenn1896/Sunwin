@@ -5,7 +5,7 @@
     "fund": "1000,3000,7000,15000,31000,63000,120000",
     "fortune": "TX,XT",
     "option": "livetx",
-    "websocket": [
+    "normal": [
       1,
       "MiniGame",
       "SC_tkcuahieu1",
@@ -15,7 +15,7 @@
         "signature": "1226972E0581428CB3334B5E9BE20040792C607068021BB7F6FC630EDD00BB4E6DB17F79F140C5FCADC01984715A4EF2B32ADE988DACECC007596F78AA9927C9A04AF911965D1F94C59C630E75165A778651FC21F7F5AB3ADE8E5A48CD67FC6D5A235FCE651F93FB7853AA607C66AF2CD5B35155BAE5B6DE6A466FA40FE35E54"
       }
     ],
-    "websocketlive": [
+    "live": [
       1,
       "Livestream",
       "SC_tkcuahieu1",
@@ -27,7 +27,7 @@
         "subi": true
       }
     ],
-    "websocket4": [
+    "balance": [
       1,
       "Simms",
       "SC_tkcuahieu1",
