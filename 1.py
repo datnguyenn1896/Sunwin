@@ -221,7 +221,7 @@ async def connect_and_communicate(uri, name, username, option, site):
 
                                 time -= 1
                                 gold = data_status[username]["gold"]
-                                print(f"Phiên: #{seasion} - Thời gian: {time} TK:{username} - TÀI: Số người: {userB} / Số tiền: {betB} - XỈU: {userS} / Số tiền: {betS} - Tài khoản: {f'{gold:,}'}")
+                                # print(f"Phiên: #{seasion} - Thời gian: {time} TK:{username} - TÀI: Số người: {userB} / Số tiền: {betB} - XỈU: {userS} / Số tiền: {betS} - Tài khoản: {f'{gold:,}'}")
                                 # print(data_status[username]["status"])
                             
                             # Nhận được message tin nhắn khi get kết quả (giống nhau)
