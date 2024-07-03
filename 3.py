@@ -35,7 +35,7 @@ def append_if_data_changes(data):
 
 def write_data(data):
     with open('login-3.txt', 'a', encoding='utf-8') as file:
-        file.write(data + "\n")
+        file.write(data)
 
 dict_result = {}
 def add_to_dict(key, value):
@@ -322,7 +322,7 @@ async def connect_and_communicate(uri, name, username, option, site):
                                 print(message)
                                 send_test_message(chat_id, message)
 
-                                write_data(gold)
+                                write_data(str(gold))
 
                                 data_status[username]["status"] = "next_session"
                                 data_status["prev_session_rs"] = True
