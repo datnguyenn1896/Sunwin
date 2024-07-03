@@ -4,9 +4,14 @@ import time
 import hashlib
 
 run1 = subprocess.Popen(["python", "1.py"])
+time.sleep(5)
 run2 = subprocess.Popen(["python", "2.py"])
+time.sleep(5)
 run3 = subprocess.Popen(["python", "3.py"])
+time.sleep(5)
 run4 = subprocess.Popen(["python", "4.py"])
+time.sleep(5)
+
 message = "\U0001F680 Start..."
 
 def get_file_hash(file_path):
@@ -52,13 +57,14 @@ time.sleep(300)
 unchanged_files = check_for_changes(initial_hashes, file_paths)
 if unchanged_files:
     for name in unchanged_files:
-        if name == "login-1":
+        print(name)
+        if name == "login-1.txt":
             run1.kill()
-        elif name == "login-2":
+        elif name == "login-2.txt":
             run2.kill()
-        elif name == "login-3":
+        elif name == "login-3.txt":
             run3.kill()
-        elif name == "login-4":
+        elif name == "login-4.txt":
             run4.kill()
 else:
     print("Tất cả các tệp đều có sự thay đổi hoặc không tồn tại.")
