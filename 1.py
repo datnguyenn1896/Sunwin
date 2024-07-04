@@ -78,7 +78,6 @@ def send_test_message(chat_id, message):
         except Exception as ex:
             print(ex)
 
-
 previous_session = None
 
 status_bet = False
@@ -125,7 +124,7 @@ async def connect_and_communicate(uri, name, username, option, site):
                     # print(payload)
                     await websocket.send(json.dumps(payload[username][name]))
                     await websocket.send(json.dumps(payload[username][name]))
-
+                    bot = Bot(token="7337195716:AAHFpNJk6OrbRZU-2vcLfRarAKyXU2mXCaI")
                     if name == "live":
                         time = data_status[username]["time_live"]
                     else:
@@ -321,6 +320,8 @@ async def connect_and_communicate(uri, name, username, option, site):
                                 message = f"\U0001F680 #{session_bet} - TK: {username} - BET: {type_bet} - {f'{current_bet:,}'} - KQ: {betTypeResult} - {status} - TOTAL: {total} - WIN: {total_win} - LOSE: {total_lose} - \U0001F4B5: {f'{gold:,}'}"
                                 print(message)
                                 send_test_message(chat_id, message)
+                                # asyncio.run(send_test_message(chat_id, message))
+
                                 write_data(str(gold))
 
                                 data_status[username]["status"] = "next_session"
@@ -337,7 +338,7 @@ async def connect_and_communicate(uri, name, username, option, site):
                                         data_get_history = json.dumps([6,"Livestream","TaiXiuLivestreamPlugin",{"cmd":1965,"sid":data_status[username]["session_bet"]}])
                                     elif name == "normal":
                                         data_get_history = json.dumps([6,"MiniGame","taixiuPlugin",{"cmd":1007,"sid":data_status[username]["session_bet"],"aid":1}])
-                                if site == "sunwin":
+                                elif site == "hitclub":
                                     if name == "normal":
                                         data_get_history = json.dumps(["6","MiniGame","taixiuPlugin",{"cmd":"1007","sid":data_status[username]["session_bet"],"aid":"1"}]	)
  
@@ -496,4 +497,6 @@ async def main(login):
 
 with open('login-1.json', 'r') as file:
     login = file.read()
-asyncio.run(main(login))
+
+if __name__ == "__main__":
+    asyncio.run(main(login))

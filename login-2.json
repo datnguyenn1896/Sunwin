@@ -2,7 +2,7 @@
   "tkcuahieu2": {
     "site":"sunwin",
     "status": true,
-    "fund": "1000,3000,7000,15000,31000,63000,120000",
+    "fund": "1000,3000,7000,15000,31000,63000",
     "fortune": "TX,XT",
     "option": "livecl",
     "normal": [
