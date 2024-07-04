@@ -61,29 +61,29 @@ def check_for_changes(initial_hashes, file_paths):
 
 # Đường dẫn tới các tệp txt
 file_paths = ['login-1.txt', 'login-2.txt', 'login-3.txt', 'login-4.txt']
+while(True):
+    # Đọc các tệp và lưu hash ban đầu
+    initial_hashes = read_files(file_paths)
 
-# Đọc các tệp và lưu hash ban đầu
-initial_hashes = read_files(file_paths)
+    # Chờ 5 phút
+    time.sleep(300)
 
-# Chờ 5 phút
-time.sleep(300)
-
-# Kiểm tra sự thay đổi
-unchanged_files = check_for_changes(initial_hashes, file_paths)
-if unchanged_files:
-    for name in unchanged_files:
-        print(name)
-        if name == "login-1.txt":
-            run_auto_1.kill()
-            run_balacne_1.kill()
-        elif name == "login-2.txt":
-            run_auto_2.kill()
-            run_balacne_2.kill()
-        elif name == "login-3.txt":
-            run_auto_3.kill()
-            run_balacne_3.kill()
-        elif name == "login-4.txt":
-            run_auto_4.kill()
-            run_balacne_4.kill()
-else:
-    print("Tất cả các tệp đều có sự thay đổi hoặc không tồn tại.")
+    # Kiểm tra sự thay đổi
+    unchanged_files = check_for_changes(initial_hashes, file_paths)
+    if unchanged_files:
+        for name in unchanged_files:
+            print(name)
+            if name == "login-1.txt":
+                run_auto_1.kill()
+                run_balacne_1.kill()
+            elif name == "login-2.txt":
+                run_auto_2.kill()
+                run_balacne_2.kill()
+            elif name == "login-3.txt":
+                run_auto_3.kill()
+                run_balacne_3.kill()
+            elif name == "login-4.txt":
+                run_auto_4.kill()
+                run_balacne_4.kill()
+    else:
+        print("Tất cả các tệp đều có sự thay đổi hoặc không tồn tại.")
