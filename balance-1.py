@@ -161,7 +161,7 @@ async def connect_and_communicate(uri, name, username, option, site):
                                     current_gold = int(data[1]["As"]["gold"])
                                     if current_gold != previous_gold:
                                         # print("Dữ liệu đã thay đổi:", current_gold)
-                                        write_data(str(current_gold))
+                                        write_data(str(round(current_gold)))
                                     # else:
                                     #     print("Không có thay đổi trong dữ liệu.")
                                     previous_gold = current_gold
