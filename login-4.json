@@ -5,17 +5,7 @@
     "fund": "1000,3000,7000,15000,31000,63000",
     "fortune": "TX,XT",
     "option": "normal",
-    "normal": [
-      1,
-      "MiniGame",
-      "",
-      "",
-      {
-        "agentId": "1",
-        "accessToken": "1-9ae7d1dd5675f61dc1729b86618ada7a",
-        "reconnect": false
-      }
-    ],
+    "normal": [1,"MiniGame","","",{"agentId":"1","accessToken":"1-2133cc8b8ee49e7b982c8bb43c7b3f4d","reconnect":false}],
     "live": [
       1,
       "MiniGame",

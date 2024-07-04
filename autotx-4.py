@@ -135,8 +135,8 @@ async def connect_and_communicate(uri, name, username, option, site):
                     # print(f"Sent message: {payload}")
                     while True:
                         message = await websocket.recv()
-                        if name == "live":
-                            print(f"Received message: {message}")
+                        # if name == "live":
+                        #     print(f"Received message: {message}")
                         
                         try: 
                             data = json.loads(message)
@@ -222,7 +222,12 @@ async def connect_and_communicate(uri, name, username, option, site):
                                             time = data_status[username]["time_normal"]
 
                                 time -= 1
-                                gold = data_status[username]["gold"]
+                                # Mở file ở chế độ đọc ('r')
+                                with open('login-4.txt', 'r', encoding='utf-8') as file:
+                                    # Đọc toàn bộ nội dung của file
+                                    gold = int(file.read())
+                                    # In ra nội dung đã đọc
+                                    # print(gold)
                                 # print(f"Phiên: #{seasion} - Thời gian: {time} TK:{username} - TÀI: Số người: {userB} / Số tiền: {betB} - XỈU: {userS} / Số tiền: {betS} - Tài khoản: {f'{gold:,}'}")
                                 # print(data_status[username]["status"])
                             
@@ -320,6 +325,14 @@ async def connect_and_communicate(uri, name, username, option, site):
                                     type_bet = "L"
                                 else:
                                     type_bet = current_betTypeResult
+
+                                # Mở file ở chế độ đọc ('r')
+                                with open('login-4.txt', 'r', encoding='utf-8') as file:
+                                    # Đọc toàn bộ nội dung của file
+                                    gold = int(file.read())
+                                    # In ra nội dung đã đọc
+                                    # print(gold)
+
                                 message = f"\U0001F680 #{session_bet} - TK: {username} - BET: {type_bet} - {f'{current_bet:,}'} - KQ: {betTypeResult} - {status} - TOTAL: {total} - WIN: {total_win} - LOSE: {total_lose} - \U0001F4B5: {f'{gold:,}'}"
                                 print(message)
                                 send_message(chat_id, message)
@@ -465,7 +478,6 @@ async def main(login):
     tasks = []
     # Chờ cả hai tác vụ hoàn thành
     for username in data_json:
-        print(username)
         if data_json[username]["status"] == True:
             option = data_json[username]["option"]
             site = data_json[username]["site"]
@@ -475,18 +487,29 @@ async def main(login):
                 normal = "wss://websocket.azhkthg1.net/websocket"
                 if option == "livetx" or option == "livecl":
                     # Tạo các tác vụ kết nối đến hai WebSocket server
-                    task1 = asyncio.create_task(connect_and_communicate(live, "live", username, option, site))
+                    await connect_and_communicate(live, "live", username, option, site)
                     # task2 = asyncio.create_task(connect_and_communicate(balance, "balance", username, option, site))
                 elif option == "normal":
-                    task1 = asyncio.create_task(connect_and_communicate(normal, "normal", username, option, site))
-                    task2 = asyncio.create_task(connect_and_communicate(balance, "balance", username, option, site))
+                    await connect_and_communicate(normal, "normal", username, option, site)
+                    # task2 = asyncio.create_task(connect_and_communicate(balance, "balance", username, option, site))
+            elif site == "hitclub":
+                live = "wss://ws-taixiu-ls.azhkthg1.com/websocket"
+                balance = "wss://carkgwaiz.hytsocesk.com/websocket"
+                normal = "wss://mynygwais.hytsocesk.com/websocket"
+                if option == "livetx" or option == "livecl":
+                    # Tạo các tác vụ kết nối đến hai WebSocket server
+                    await connect_and_communicate(live, "live", username, option, site)
+                    # task2 = asyncio.create_task(connect_and_communicate(balance, "balance", username, option, site))
+                elif option == "normal":
+                    await connect_and_communicate(normal, "normal", username, option, site)
+                    # task2 = asyncio.create_task(connect_and_communicate(balance, "balance", username, option, site))
+            
+    # #         tasks.append(task1)
+    # #         # tasks.append(task2)
+    # await asyncio.gather(task1, task2)
 
-    #         tasks.append(task1)
-    #         # tasks.append(task2)
-    await asyncio.gather(task1, task2)
 
-
-with open('login-3.json', 'r') as file:
+with open('login-4.json', 'r') as file:
     login = file.read()
 
 asyncio.run(main(login))
