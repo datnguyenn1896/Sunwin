@@ -2,32 +2,8 @@ import subprocess
 import os
 import time
 import hashlib
-
-run_auto_1 = subprocess.Popen(["python", "autotx-1.py"])
-time.sleep(5)
-run_balacne_1 = subprocess.Popen(["python", "balance-1.py"])
-
-run_auto_2 = subprocess.Popen(["python", "autotx-2.py"])
-time.sleep(5)
-run_balacne_2 = subprocess.Popen(["python", "balance-2.py"])
-
-run_auto_3 = subprocess.Popen(["python", "autotx-3.py"])
-time.sleep(5)
-run_balacne_3 = subprocess.Popen(["python", "balance-3.py"])
-
-
-run_auto_4 = subprocess.Popen(["python", "autotx-4.py"])
-time.sleep(5)
-run_balacne_4 = subprocess.Popen(["python", "balance-4.py"])
-
-# run2 = subprocess.Popen(["python", "2.py"])
-# time.sleep(5)
-# run3 = subprocess.Popen(["python", "3.py"])
-# time.sleep(5)
-# run4 = subprocess.Popen(["python", "4.py"])
-# time.sleep(5)
-
-message = "\U0001F680 Start..."
+import json
+import signal
 
 def get_file_hash(file_path):
     """Tính hash của nội dung tệp để so sánh sự thay đổi."""
@@ -60,30 +36,53 @@ def check_for_changes(initial_hashes, file_paths):
     return unchanged_files
 
 # Đường dẫn tới các tệp txt
-file_paths = ['login-1.txt', 'login-2.txt', 'login-3.txt', 'login-4.txt']
+file_paths = ['login-1.txt', 'login-2.txt', 'login-3.txt', 'login-4.txt', 'login-5.txt', 'login-6.txt', 'login-7.txt', 'login-8.txt',  'login-9.txt']
+dict_balance_run = {}
+dict_autotx_run = {}
+
+        
 while(True):
+    with open('login.json', 'r') as file:
+        data = file.read()
+        data_json =json.loads(data)
+        for username in data_json:
+            data = data_json[username]
+            path = data_json[username]["path"]
+            data_send = json.dumps({username:data})
+            if username in data_json and isinstance(data_json[username], dict):
+                if data_json[username]["status"] == True:
+                    if path not in dict_balance_run:
+                        run_balance = subprocess.Popen(["python", "balance.py","--data", str(data_send)])
+                        time.sleep(5)
+                        run_auto_tx = subprocess.Popen(["python", "autotx.py","--data", str(data_send)])
+                        try:
+                            dict_balance_run[path] = run_balance.pid
+                            dict_autotx_run[path] = run_auto_tx.pid
+                            print("Start: " + path)
+                        except:
+                            print("")
+
+
+    print("")
     # Đọc các tệp và lưu hash ban đầu
     initial_hashes = read_files(file_paths)
-
     # Chờ 5 phút
     time.sleep(300)
 
     # Kiểm tra sự thay đổi
     unchanged_files = check_for_changes(initial_hashes, file_paths)
     if unchanged_files:
-        for name in unchanged_files:
-            print(name)
-            if name == "login-1.txt":
-                run_auto_1.kill()
-                run_balacne_1.kill()
-            elif name == "login-2.txt":
-                run_auto_2.kill()
-                run_balacne_2.kill()
-            elif name == "login-3.txt":
-                run_auto_3.kill()
-                run_balacne_3.kill()
-            elif name == "login-4.txt":
-                run_auto_4.kill()
-                run_balacne_4.kill()
+        for path_unchanged_files in unchanged_files:
+            path = str(path_unchanged_files).replace(".txt","")
+            pid_balance = dict_balance_run[path]
+            pid_autotx = dict_autotx_run[path]
+            os.kill(pid_balance, signal.SIGTERM)
+            time.sleep(1)
+            os.kill(pid_autotx, signal.SIGTERM)
+            time.sleep(1)
+            if path in dict_balance_run:
+                del dict_balance_run[path]
+                del dict_autotx_run[path]
+            print("Stop: " + path)
     else:
         print("Tất cả các tệp đều có sự thay đổi hoặc không tồn tại.")

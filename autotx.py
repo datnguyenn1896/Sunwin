@@ -298,12 +298,14 @@ class WebSocketBot:
 
                                 if current_betTypeResult == "T" and option == "livecl":
                                     type_bet = "C"
+                                    betTypeResult = "C"
                                 elif current_betTypeResult == "X" and option == "livecl":
                                     type_bet = "L"
+                                    betTypeResult = "L"
                                 else:
                                     type_bet = current_betTypeResult
 
-
+                                # print(current_bet, gold)
                                 message = f"\U0001F680 #{session_bet} - TK: {username} - BET: {type_bet} - {f'{current_bet:,}'} - KQ: {betTypeResult} - {status} - TOTAL: {total} - WIN: {total_win} - LOSE: {total_lose} - \U0001F4B5: {f'{gold:,}'}"
                                 print(message)
                                 self.send_message(chat_id, message)
@@ -357,9 +359,9 @@ class WebSocketBot:
                                         self.data_status[username]["status"] = "wait_bet"
                                         self.data_status[username]["next_betTypeResult"] = result_next_seesion
                                         self.data_status[username]["next_bet"] = monneyB
-                                        # print(f"Dự đoán phiên tiếp theo là: {result_next_seesion} - BET: {monneyB}")
+                                        print(f"Tài khoản: {username} - Dự đoán phiên tiếp theo là: {result_next_seesion} - BET: {monneyB}")
                                         break
-                        
+                                # print(f"Tài khoản: {username} - Không đúng cầu!")
                             if name == "live":
                                 time_in_bet = self.data_status[username]["time_live"] - 2
                             else:
