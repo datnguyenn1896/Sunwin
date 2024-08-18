@@ -50,7 +50,7 @@ while(True):
             path = data_json[username]["path"]
             data_send = json.dumps({username:data})
             if username in data_json and isinstance(data_json[username], dict):
-                if data_json[username]["status"] == True:
+                if data_json[username]["status"] == True: 
                     if path not in dict_balance_run:
                         run_balance = subprocess.Popen(["python", "balance.py","--data", str(data_send)])
                         time.sleep(5)
